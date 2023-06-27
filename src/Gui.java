@@ -1,33 +1,36 @@
 import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.sql.*;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.sql.*;
-import javax.swing.table.TableRowSorter;
 
 public class Gui extends JFrame implements ActionListener {
-    private JTable table;
-    private DefaultTableModel model;
-    private JButton showDetailsButton;
-    private JButton retourButton;
-    private JTextArea retourRedenTextArea;
-    private JTextField zoekVeld;
-    private JButton refreshButton;
-    private TableRowSorter<DefaultTableModel> rowSorter;
+    //login
+    private JButton loginButton;
     private JPanel loginPanel;
     private JTextField usernameField;
     private JPasswordField passwordField;
-    private JButton loginButton;
+
+    //showMainApplication() methode
+    private DefaultTableModel model;
+    private JTable table;
+    private JButton showDetailsButton;
+    private JButton retourButton;
+    private JButton refreshButton;
+    private TableRowSorter<DefaultTableModel> rowSorter;
+    private JTextArea retourRedenTextArea;
+    private JTextField zoekVeld;
+
+    // Verwijzing naar het LoginManager-object voor het afhandelen van inlogoperaties
     private LoginManager loginManager;
+    // Verwijzing naar het DatabaseManager-object voor het afhandelen van database-operaties
     private DatabaseManager databaseManager;
 
     public Gui(LoginManager loginManager) {
         this.loginManager = loginManager;
         this.databaseManager = loginManager.getDatabaseManager();
-
-        setTitle("Retoursysteem");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         initialiseerGui(); //roept de initialiseerGui() methode aan
 
@@ -36,17 +39,28 @@ public class Gui extends JFrame implements ActionListener {
     }
 
     private void initialiseerGui() {
-        loginPanel = new JPanel(new GridLayout(3, 2));
+        setTitle("Retoursysteem");
+
+        loginPanel = new JPanel();
+        loginPanel.setBorder(BorderFactory.createEmptyBorder(50, 50, 50, 50));
+        loginPanel.setLayout(new GridLayout(3, 2, 10, 10));
+        loginPanel.setBackground(Color.LIGHT_GRAY);
+
         loginPanel.add(new JLabel("Gebruikersnaam:"));
         usernameField = new JTextField();
         loginPanel.add(usernameField);
+
         loginPanel.add(new JLabel("Wachtwoord:"));
         passwordField = new JPasswordField();
         loginPanel.add(passwordField);
+
         loginButton = new JButton("Inloggen");
+        loginPanel.add(loginButton);
+
         loginButton.addActionListener(this); // voeg actionlistener toe aan loginbutton
         loginPanel.add(loginButton);
 
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         add(loginPanel, BorderLayout.CENTER);
     }
 
@@ -290,10 +304,10 @@ public class Gui extends JFrame implements ActionListener {
 
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == loginButton) {
-            login(); // Call the login() method when the login button is clicked
+            login(); //wanneer de loginbutton word geclicked, word de login() methode aangeroepen
         } else if (e.getSource() == zoekVeld) {
             String searchText = zoekVeld.getText();
-            rowSorter.setRowFilter(RowFilter.regexFilter("(?i)" + searchText)); // Case-insensitive search
+            rowSorter.setRowFilter(RowFilter.regexFilter("(?i)" + searchText));
         }
     }
 
