@@ -3,10 +3,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
 import java.sql.*;
-import java.util.ArrayList;
-import javax.swing.RowFilter;
 import javax.swing.table.TableRowSorter;
 
 public class Gui extends JFrame implements ActionListener {
@@ -21,11 +18,24 @@ public class Gui extends JFrame implements ActionListener {
     private JPanel loginPanel;
     private JTextField usernameField;
     private JPasswordField passwordField;
+    private JButton loginButton;
+    private LoginManager loginManager;
+    private DatabaseManager databaseManager;
 
-    public Gui() {
+    public Gui(LoginManager loginManager) {
+        this.loginManager = loginManager;
+        this.databaseManager = loginManager.getDatabaseManager();
+
         setTitle("Retoursysteem");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
+        initialiseerGui(); //roept de initialiseerGui() methode aan
+
+        pack();
+        setLocationRelativeTo(null);
+    }
+
+    private void initialiseerGui() {
         loginPanel = new JPanel(new GridLayout(3, 2));
         loginPanel.add(new JLabel("Gebruikersnaam:"));
         usernameField = new JTextField();
@@ -33,18 +43,11 @@ public class Gui extends JFrame implements ActionListener {
         loginPanel.add(new JLabel("Wachtwoord:"));
         passwordField = new JPasswordField();
         loginPanel.add(passwordField);
-        JButton loginButton = new JButton("Inloggen");
-        loginButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                login();
-            }
-        });
+        loginButton = new JButton("Inloggen");
+        loginButton.addActionListener(this); // voeg actionlistener toe aan loginbutton
         loginPanel.add(loginButton);
 
         add(loginPanel, BorderLayout.CENTER);
-        pack();
-        setLocationRelativeTo(null);
     }
 
     private void login() {
@@ -52,42 +55,13 @@ public class Gui extends JFrame implements ActionListener {
         char[] passwordChars = passwordField.getPassword();
         String password = new String(passwordChars);
 
-        // Database connectie details
-        String url = "jdbc:mysql://localhost:3306/nerdygadgets";
-        String dbUsername = "root";
-        String dbPassword = "";
-
-        try {
-            //Verbinden met database
-            Connection connection = DriverManager.getConnection(url, dbUsername, dbPassword);
-
-            //Statement preparen voor login query
-            String loginQuery = "SELECT * FROM Medewerker WHERE Gebruikersnaam = ? AND Wachtwoord = ?";
-            PreparedStatement preparedStatement = connection.prepareStatement(loginQuery);
-
-            //Values voor username en password toewijzen aan query
-            preparedStatement.setString(1, username);
-            preparedStatement.setString(2, password);
-
-            //Login query executen
-            ResultSet resultSet = preparedStatement.executeQuery();
-
-            if (resultSet.next()) {
-                // Login successful
-                loginPanel.setVisible(false);
-                showMainApplication();
-            } else {
-                // Login failed
-                JOptionPane.showMessageDialog(this, "Ongeldige inloggegevens.", "Inloggen mislukt", JOptionPane.ERROR_MESSAGE);
-            }
-
-            //result set, prepared statement en connectie sluiten
-            resultSet.close();
-            preparedStatement.close();
-            connection.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Fout bij het uitvoeren van de login-query.", "Error", JOptionPane.ERROR_MESSAGE);
+        if (loginManager.login(username, password)) {
+            // Login succesvol
+            loginPanel.setVisible(false);
+            showMainApplication();
+        } else {
+            // Login gefaald
+            JOptionPane.showMessageDialog(this, "Ongeldige inloggegevens.", "Inloggen mislukt", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -152,14 +126,10 @@ public class Gui extends JFrame implements ActionListener {
 
         add(bottomPanel, BorderLayout.SOUTH);
 
-        // Database connectie details
-        String url = "jdbc:mysql://localhost:3306/nerdygadgets";
-        String username = "root";
-        String password = "";
 
         try {
             //verbinden met database
-            Connection connection = DriverManager.getConnection(url, username, password);
+            Connection connection = databaseManager.getConnection();
 
             //Statement creeeren
             Statement statement = connection.createStatement();
@@ -228,13 +198,10 @@ public class Gui extends JFrame implements ActionListener {
 
             if (!refundReason.isEmpty()) {
                 // Refund opperation uitvoeren en database updaten
-                String url = "jdbc:mysql://localhost:3306/nerdygadgets";
-                String username = "root";
-                String password = "";
 
                 try {
                     // Verbinden met database
-                    Connection connection = DriverManager.getConnection(url, username, password);
+                    Connection connection = databaseManager.getConnection();
 
                     // Statement voor database updaten
                     String updateQuery = "UPDATE retouren SET Doorgevoerd = 1, Reden_doorgevoerd = ? WHERE RetourID = ?";
@@ -276,14 +243,9 @@ public class Gui extends JFrame implements ActionListener {
             return; //Data is al geladen. hoeft niet gerefreshed te worden
         }
 
-        // Database verbinding details
-        String url = "jdbc:mysql://localhost:3306/nerdygadgets";
-        String username = "root";
-        String password = "";
-
         try {
             //Verbinden met database
-            Connection connection = DriverManager.getConnection(url, username, password);
+            Connection connection = databaseManager.getConnection();
 
             //Statement maken
             Statement statement = connection.createStatement();
@@ -326,22 +288,14 @@ public class Gui extends JFrame implements ActionListener {
         }
     }
 
-    public void actionPerformed(ActionEvent event) {
-        String text = zoekVeld.getText();
-        if (text.trim().length() == 0) {
-            rowSorter.setRowFilter(null);
-        } else {
-            rowSorter.setRowFilter(RowFilter.regexFilter("(?i)" + text));
+    public void actionPerformed(ActionEvent e) {
+        if (e.getSource() == loginButton) {
+            login(); // Call the login() method when the login button is clicked
+        } else if (e.getSource() == zoekVeld) {
+            String searchText = zoekVeld.getText();
+            rowSorter.setRowFilter(RowFilter.regexFilter("(?i)" + searchText)); // Case-insensitive search
         }
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                Gui gui = new Gui();
-                gui.setVisible(true);
-            }
-        });
-    }
+
 }
