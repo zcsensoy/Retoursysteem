@@ -89,20 +89,10 @@ public class Gui extends JFrame implements ActionListener {
         add(scrollPane, BorderLayout.CENTER);
 
         showDetailsButton = new JButton("Details");
-        showDetailsButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                showSelectedRowDetails();
-            }
-        });
+        showDetailsButton.addActionListener(e -> showSelectedRowDetails());
 
         retourButton = new JButton("Bestelling refunden");
-        retourButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                refundOrder();
-            }
-        });
+        retourButton.addActionListener(e -> refundOrder());
 
         retourRedenTextArea = new JTextArea(4, 20);
         retourRedenTextArea.setLineWrap(true);
@@ -124,12 +114,7 @@ public class Gui extends JFrame implements ActionListener {
         searchPanel.add(zoekVeld, BorderLayout.CENTER);
 
         refreshButton = new JButton("Vernieuwen");
-        refreshButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                refreshData();
-            }
-        });
+        refreshButton.addActionListener(e -> refreshData());
 
         JPanel bottomPanel = new JPanel();
         bottomPanel.setLayout(new BorderLayout());
@@ -310,6 +295,4 @@ public class Gui extends JFrame implements ActionListener {
             rowSorter.setRowFilter(RowFilter.regexFilter("(?i)" + searchText));
         }
     }
-
-
 }

@@ -3,14 +3,14 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DatabaseManager {
-    private String url;
-    private String dbUsername;
-    private String dbPassword;
+    private final String url;
+    private final String dbUsername;
+    private final String dbPassword;
 
     public DatabaseManager(String url, String username, String password) {
-        this.url = "jdbc:mysql://localhost:3306/nerdygadgets";
-        this.dbUsername = "root";
-        this.dbPassword = "";
+        this.url = url;
+        this.dbUsername = username;
+        this.dbPassword = password;
     }
 
     public Connection getConnection() throws SQLException {
